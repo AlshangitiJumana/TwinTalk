@@ -24,29 +24,53 @@ def load_model(dataset='WLASL2000'):
     model.cpu()
     return model
 
+# def classify_live(input_tensor, model, idx2label, start_ignore=12, threshold=0.5):
+#     """
+#     Classify the live input tensor using the WLASL model and return the top predicted word.
+#     """
+#     with torch.no_grad():
+#         per_frame_logits = model.forward(input_tensor)  # ✅ Use forward() explicitly
+
+#     predictions = torch.mean(per_frame_logits, dim=2)
+#     _, top_indices = torch.topk(predictions, 1)  # Just need the top prediction
+#     top_index = top_indices.cpu().numpy()[0][0]
+
+#     predictions = torch.nn.functional.softmax(predictions, dim=1).cpu().numpy()[0]
+#     top_prediction = idx2label[top_index]
+#     top_prediction_confidence = predictions[top_index]
+
+#     # ✅ Directly use the model's prediction (no LLM logic)
+#     word_to_speak = top_prediction
+
+#     # ✅ Convert the chosen word to speech
+#     tts = gTTS(text=word_to_speak, lang='en')
+#     tts_file = 'prediction.mp3'
+#     tts.save(tts_file)
+#     playsound.playsound(tts_file)
+#     os.remove(tts_file)
+
+#     return word_to_speak  # ✅ Return the predicted word directly
+
 def classify_live(input_tensor, model, idx2label, start_ignore=12, threshold=0.5):
     """
-    Classify the live input tensor using the WLASL model and return the top predicted word.
+    Classify the live input tensor using the WLASL model and return the top predicted word and confidence score.
     """
     with torch.no_grad():
         per_frame_logits = model.forward(input_tensor)  # ✅ Use forward() explicitly
 
     predictions = torch.mean(per_frame_logits, dim=2)
-    _, top_indices = torch.topk(predictions, 1)  # Just need the top prediction
+    _, top_indices = torch.topk(predictions, 1)  # ✅ Get top prediction index
     top_index = top_indices.cpu().numpy()[0][0]
 
-    predictions = torch.nn.functional.softmax(predictions, dim=1).cpu().numpy()[0]
+    probabilities = torch.nn.functional.softmax(predictions, dim=1).cpu().numpy()[0]
     top_prediction = idx2label[top_index]
-    top_prediction_confidence = predictions[top_index]
+    top_prediction_confidence = probabilities[top_index]  # ✅ Extract confidence score
+    #  # ✅ Convert the chosen word to speech
+    # tts = gTTS(text=top_prediction, lang='en')
+    # tts_file = 'prediction.mp3'
+    # tts.save(tts_file)
+    # playsound.playsound(tts_file)
+    # os.remove(tts_file)
 
-    # ✅ Directly use the model's prediction (no LLM logic)
-    word_to_speak = top_prediction
-
-    # ✅ Convert the chosen word to speech
-    tts = gTTS(text=word_to_speak, lang='en')
-    tts_file = 'prediction.mp3'
-    tts.save(tts_file)
-    playsound.playsound(tts_file)
-    os.remove(tts_file)
-
-    return word_to_speak  # ✅ Return the predicted word directly
+    # ✅ Return both the predicted word & confidence score
+    return top_prediction, top_prediction_confidence
