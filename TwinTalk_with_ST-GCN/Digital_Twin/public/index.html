@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Digital Twin Demo</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      height: 100vh;
+      margin: 0;
+    }
+    #input-side, #output-side {
+      flex: 1;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    #output-video {
+      width: 100%;
+      height: auto;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="input-side">
+    <h2>Enter Text</h2>
+    <textarea id="text-input" rows="6" style="width:100%"></textarea>
+    <br>
+    <button onclick="generate()">Speak</button>
+  </div>
+
+  <div id="output-side">
+    <h2>Digital Twin</h2>
+    <video id="output-video" controls autoplay></video>
+  </div>
+
+  <script>
+    async function generate() {
+      console.log('🟢 generate() called');
+      const text = document.getElementById('text-input').value;
+      if (!text) return alert("Please enter some text.");
+
+      try {
+        const response = await fetch('/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Server returned error: ${response.status} - ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log('🔁 Response:', data);
+
+        const videoEl = document.getElementById('output-video');
+        videoEl.src = data.videoUrl;
+      } catch (err) {
+        console.error('❌ Fetch error:', err);
+        alert("Error: " + err.message);
+      }
+    }
+  </script>
+</body>
+</html>
