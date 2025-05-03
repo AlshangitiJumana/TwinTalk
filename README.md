@@ -26,12 +26,14 @@ We began with a **pre-trained I3D (Inflated 3D ConvNet)** model, inspired by the
 
 We collected and labeled our own ASL dataset from scratch:
 
-- **90 ASL classes**
-- **900 total videos** (10 videos per class)
-- ✅ No inner-class variation — For each word, we chose one consistent sign only (Most available datasets suffer from inner-class variation, where multiple signs represent the same word. This affects both training consistency and testing accuracy.)
-- 📦 [Kaggle Dataset Link Placeholder — _add your link here_]
+- **90 ASL classes**  
+- **900 total videos** (10 videos per class)  
+- ✅ No inner-class variation — for each word, we chose one consistent sign only  
+  _(Most available datasets suffer from inner-class variation, where multiple signs represent the same word. This affects both training consistency and testing accuracy.)_
+- 📦 [View the dataset on Kaggle](https://www.kaggle.com/datasets/jomanahalshangiti/twintalk-asl-data/data)
 
 This consistency made it ideal for training controlled experiments with deep models.
+
 
 ---
 
