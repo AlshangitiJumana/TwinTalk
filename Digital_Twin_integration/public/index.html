@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TwinTalk Interface</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fa;
+      color: #333;
+      overflow-x: hidden;
+      overflow-y: hidden;
+    }
+
+    .top-bar {
+      height: 45px;
+      width: 100%;
+      background-color: #d4ebff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .user-icon {
+      width: 24px;
+      height: auto;
+    }
+
+    .logout-btn {
+      background-color: #f08080;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .logout-btn:hover {
+      background-color: #d96a6a;
+    }
+
+    .welcome-block {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 10px;
+      gap: 20px;
+      flex-wrap: wrap;
+      text-align: center;
+    }
+
+    .welcome-logo {
+      height: 125px;
+      width: auto;
+    }
+
+    .welcome-heading {
+      font-size: 28px;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    .welcome-subtext {
+      font-size: 18px;
+      color: #555;
+      margin-top: 4px;
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 20px;
+      padding: 10px;
+      max-width: 1300px;
+      margin: 0 auto;
+      flex-wrap: nowrap;
+    }
+
+    .section {
+      background-color: #ffffff;
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      flex: 1 1 0;
+      min-width: 0;
+      height: 470px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+
+    .section:nth-child(2) {
+      padding-top: 25px;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin: 0 0 8px;
+    }
+
+    h3 {
+      font-size: 15px;
+      margin: 4px 0;
+    }
+
+    video {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      max-height: 370px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    #camera-stream {
+  transform: scaleX(-1);
+    }
+
+
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    button {
+      padding: 7px 14px;
+      font-size: 14px;
+      border: none;
+      border-radius: 8px;
+      background-color: #b2e8c2;
+      color: #000;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #9bd9af;
+    }
+
+    #accepted-words,
+    #generated-sentence,
+    #predicting-status {
+      font-size: 14px;
+      color: #444;
+      margin-top: 6px;
+      word-wrap: break-word;
+      text-align: center;
+    }
+
+    @media (max-width: 1100px) {
+      .container {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .section {
+        width: 90%;
+        height: auto;
+      }
+
+      body {
+        overflow-y: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <script>
+    if (localStorage.getItem('isLoggedIn') !== 'true') {
+      window.location.replace('/login.html');
+      throw new Error("User not authenticated.");
+    }
+  </script>
+
+  <div class="top-bar">
+    <div class="user-info">
+      <img src="user-icon.png" alt="User Icon" class="user-icon" />
+      <span id="user-name">Hello, Guest</span>
+    </div>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+
+  <div class="welcome-block">
+    <img src="logo.png" alt="TwinTalk Logo" class="welcome-logo" />
+    <div>
+      <p class="welcome-heading">Welcome to TwinTalk</p>
+      <p class="welcome-subtext">🤟 where every gesture finds a voice, and every conversation becomes accessible 🌐💬</p>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="section">
+      <h2>Live Camera Feed</h2>
+      <video id="camera-stream" autoplay muted playsinline></video>
+      <div class="button-group">
+        <button onclick="startRecording()">🟢 Start</button>
+        <button onclick="stopRecording()">⏹ Stop</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Sign Language Translation</h2>
+      <h3>Predicted Word: <span id="predicted-word">-</span></h3>
+      <div class="button-group">
+        <button onclick="submitDecision('y')">✅ Accept</button>
+        <button onclick="submitDecision('n')">🔁 Retry</button>
+        <button onclick="finishPrompt()">⏹ Finish</button>
+        <button onclick="sendToAvatar()" id="send-btn" style="display:none;">▶ Send to Avatar</button>
+      </div>
+      <p id="accepted-words"></p>
+      <p id="generated-sentence"></p>
+      <p id="predicting-status"></p>
+    </div>
+
+    <div class="section">
+      <h2>Digital Twin</h2>
+      <video id="output-video" controls autoplay></video>
+    </div>
+  </div>
+
+  <script>
+    const name = localStorage.getItem('userName') || 'Guest';
+    document.getElementById('user-name').innerText = `Hello, ${name}`;
+
+    let mediaStream = null;
+    let frameInterval = null;
+    let collectedFrames = [];
+    let acceptedWords = [];
+    let enhancedSentence = "";
+
+    async function startCamera() {
+      mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      document.getElementById('camera-stream').srcObject = mediaStream;
+    }
+
+    function startRecording() {
+      collectedFrames = [];
+      const video = document.getElementById('camera-stream');
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+
+      frameInterval = setInterval(() => {
+        if (!video.videoWidth) return;
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const frame = canvas.toDataURL('image/jpeg');
+        collectedFrames.push(frame);
+      }, 100);
+    }
+
+    async function stopRecording() {
+      clearInterval(frameInterval);
+      try {
+        document.getElementById('predicting-status').innerText = '🔄 Predicting...';
+        const res = await fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ frames: collectedFrames })
+        });
+        const data = await res.json();
+        document.getElementById('predicted-word').innerText = data.predicted_word || '-';
+        document.getElementById('predicting-status').innerText = '';
+      } catch (err) {
+        console.error("Prediction failed", err);
+        document.getElementById('predicting-status').innerText = '❌ Prediction failed';
+      }
+    }
+
+    async function submitDecision(decision) {
+      const word = document.getElementById('predicted-word').innerText;
+      if (decision === 'y' && word !== '-') {
+        acceptedWords.push(word);
+      }
+      document.getElementById('predicted-word').innerText = '-';
+      document.getElementById('accepted-words').innerText = "✅ Accepted words: " + acceptedWords.join(', ');
+    }
+
+    async function finishPrompt() {
+  const word = document.getElementById('predicted-word').innerText;
+
+  // 🛑 Skip the confirm popup if word is placeholder
+  if (word !== '-' && confirm(`Do you want to add "${word}" before finishing?`)) {
+    acceptedWords.push(word);
+  }
+
+  document.getElementById('predicted-word').innerText = '-';
+  document.getElementById('accepted-words').innerText = "✅ Accepted words: " + acceptedWords.join(', ');
+  document.getElementById('predicting-status').innerText = '🔄 Generating sentence...';
+
+  const res = await fetch('/predict', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      frames: [],
+      accepted_words: acceptedWords,
+      final: true
+    })
+  });
+
+  const data = await res.json();
+  enhancedSentence = data.enhanced_sentence;
+  document.getElementById('generated-sentence').innerText = "💬 Sentence: " + enhancedSentence;
+  document.getElementById('send-btn').style.display = "inline-block";
+  document.getElementById('predicting-status').innerText = '';
+}
+    async function sendToAvatar() {
+      const res = await fetch('/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: enhancedSentence })
+      });
+      const data = await res.json();
+      const videoUrl = data.videoUrl || data.url;
+      if (videoUrl) {
+        document.getElementById('output-video').src = videoUrl;
+        document.getElementById('output-video').play();
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('userName');
+      window.location.href = '/login.html';
+    }
+
+    window.onload = startCamera;
+  </script>
+</body>
+</html>
